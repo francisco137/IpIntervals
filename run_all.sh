@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ./ip_intervals.sh --build all -c
-./ip_intervals.sh --minikube
+./ip_intervals.sh --minikube -c
 ./ip_intervals.sh --dashboard -c
 ./ip_intervals.sh --start -c
 ./ip_intervals.sh --execute -c
