@@ -83,22 +83,6 @@ show_help()
   printf "\n"
 }
 
-export_host_domain()
-{
-  # to install route on Debian like systems: apt-get install net-tools
-  a=`type /sbin/route 2>&1 1>/dev/null`
- if [ "$?" -eq "0" ] ; then
-		# Assumed that /sbin/route shows at the line beginning the word 'default'
- 	# and at the end of that line the name of the default interface
-  # This name is stored as variable ifejs:
-    ifejs=`/sbin/route | grep default | head -1 | awk '{print $NF}'`
-		# Assumed that ip addr show dev $ifejs has a line which contains
- 	# the word 'inet' followed by spaces and then by ip address of the
-  # default interface $ifejs:
-  export HOST_DOMAIN=`ip addr show dev eno1 | grep 'inet ' | awk '{print $2}' | sed 's/\/.*//'`
- fi
-}
-
 is_minikube_running()
 {
   status=`minikube status | grep host: | awk '{print $2}'`
@@ -176,8 +160,6 @@ create_basic_folders()
 show_header
 
 if [ "$1" = "" ] ; then HELP="yes" ; fi
-
-export_host_domain
 
 ################################################################################
 #  C O M M A N D L I N E   A R G U M E N T S
