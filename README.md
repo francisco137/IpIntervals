@@ -70,6 +70,12 @@ Java HotSpot(TM) 64-Bit Server VM (build 25.91-b14, mixed mode)
 minikube version: v1.17.1
 commit: 043bdca07e54ab6e4fc0457e3064048f34133d7e
 ```  
+## WARNING - Minikube driver possible problems!
+
+Please pay attention on minikube driver. The driver means type of virtualization
+which is used to run minikube.
+
+We tested only default one: the "docker"
 
 ### Running the application:
 
