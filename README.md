@@ -24,7 +24,7 @@ Application works as follows - it:
 
 3. save the ranges into postgresql database,
 
-4. search the final result three time, but takes the source ranges in three
+4. search the final result three times, but takes the source ranges in three
 ways: from memmory sequence, from file and from postgresql. All the result are
 displayed on the screen so they can be compared.
 
