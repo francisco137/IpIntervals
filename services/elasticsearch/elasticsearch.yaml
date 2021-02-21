@@ -1,0 +1,107 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: elasticsearch
+spec:
+  selector:
+    matchLabels:
+      app: elasticsearch
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: elasticsearch
+    spec:
+      initContainers:
+      - name: set-1
+        image: ${image_elasticsearch}
+        command: ["sh", "-c", "ulimit -n 65536"]
+        securityContext:
+          privileged: true
+      - name: set-2
+        image: ${image_elasticsearch}
+        command: ['sh', '-c', "ulimit -l unlimited"]
+        securityContext:
+          privileged: true
+#      - name: set-3
+#        image: ${image_elasticsearch}
+#        command: ["sh", "-c"]
+#        args:
+#          - echo "Hello ElasticSearch!";
+#            chown -R elasticsearch:elasticsearch /usr/share/elasticsearch/data;
+#            chmod -R 775 /usr/share/elasticsearch/data;
+#        securityContext:
+#          privileged: true
+      containers:
+      - name: elasticsearch
+        image: ${image_elasticsearch}
+        command: ["sh", "-c"]
+        args:
+          - echo "Hello ElasticSearch!";
+            chown -R elasticsearch:elasticsearch /usr/share/elasticsearch/data;
+            chmod -R 775 /usr/share/elasticsearch/data;
+            su elasticsearch -c '/usr/share/elasticsearch/bin/elasticsearch';
+        imagePullPolicy: IfNotPresent
+        env:
+          - name: discovery.type
+            value: single-node
+          - name: cluster.name
+            value: elasticsearch
+        ports:
+          - containerPort: 9200
+            name: client
+          - containerPort: 9300
+            name: nodes
+        volumeMounts:
+          - name: elasticsearch
+            mountPath: /usr/share/elasticsearch/data/
+      volumes:
+        - name: elasticsearch
+          persistentVolumeClaim:
+            claimName: francisco-pvc-elasticsearch
+
+---
+
+kind: Service
+apiVersion: v1
+metadata:
+  name: elasticsearch
+spec:
+  selector:
+    app: elasticsearch
+  ports:
+    - name: client
+      port: 9200
+      nodePort: 9200
+    - name: nodes
+      port: 9300
+      nodePort: 9300
+  type: NodePort
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: francisco-pvc-elasticsearch
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: franciscostorageelasticsearch
+  resources:
+    requests:
+      storage: 0.5Gi
+
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: elasticsearch
+spec:
+  storageClassName: franciscostorageelasticsearch
+  capacity:
+    storage: 0.5Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: /data/elasticsearch
+    type: DirectoryOrCreate

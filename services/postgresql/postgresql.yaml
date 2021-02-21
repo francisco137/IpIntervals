@@ -1,0 +1,84 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgresql
+spec:
+  selector:
+    matchLabels:
+      app: postgresql
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: postgresql
+    spec:
+      containers:
+        - name: postgresql
+          image: ${image_postgresql}
+          imagePullPolicy: "IfNotPresent"
+          command: ['sh', '-c']
+          args:
+            - /home/francisco/init.sh;
+          env:
+            - name: "PG_VERSION"
+              value: "${PG_VERSION}"
+            - name: "PG_BASE"
+              value: "${PG_BASE}"
+            - name: "PG_USER"
+              value: "${PG_USER}"
+            - name: "PG_PASS"
+              value: "${PG_PASS}"
+          securityContext:
+            privileged: true
+          ports:
+            - containerPort: 5432
+              name: db
+          volumeMounts:
+            - name: postgresql
+              mountPath: /data/postgresql
+      volumes:
+        - name: postgresql
+          persistentVolumeClaim:
+            claimName: francisco-pvc-postgresql
+
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: postgresql
+spec:
+  selector:
+    app: postgresql
+  ports:
+    - name: db
+      port: 5432
+      nodePort: 5432
+  type: NodePort
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: francisco-pvc-postgresql
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: franciscostoragepostgresql
+  resources:
+    requests:
+      storage: 0.5Gi
+
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: postgresql
+spec:
+  storageClassName: franciscostoragepostgresql
+  capacity:
+    storage: 0.5Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: /data/postgresql
+    type: DirectoryOrCreate
